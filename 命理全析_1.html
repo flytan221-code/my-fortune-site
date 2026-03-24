@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="命理全析 — 專業生辰八字、大運流年、姓名測字，傳統命理智慧，免費線上算命">
+<meta name="keywords" content="生辰八字,算命,命理,大運,流年,姓名測字,五行,天干地支">
+<meta property="og:title" content="命理全析 — 生辰八字 · 大運流年 · 姓名測字">
+<meta property="og:description" content="輸入生辰八字，免費推算您的命格、大運流年與姓名五格數理">
+<meta property="og:type" content="website">
+<title>命理全析 — 生辰八字 · 大運流年 · 姓名測字</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;600;700;900&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --gold:#c9a84c;--gold-light:#e8c96a;--gold-pale:#f5e8c0;--gold-dim:#7a6030;
+  --ink:#0d0804;--ink2:#1a1008;--ink3:#251808;
+  --paper:#fdf6e8;--paper2:#f5e8cc;
+  --red:#8b1a1a;--red-light:#c42b2b;
+  --text:#2a1a08;--text2:#5a3a18;--text3:#8a6040;
+  --radius:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--ink);color:var(--paper);overflow-x:hidden;cursor:default}
+
+/* ─── Scrollbar ─── */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--ink2)}
+::-webkit-scrollbar-thumb{background:var(--gold-dim);border-radius:3px}
+
+/* ─── Canvas background ─── */
+#bgCanvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.55}
+
+/* ─── Noise overlay ─── */
+body::before{content:'';position:fixed;inset:0;z-index:1;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  opacity:.03;mix-blend-mode:overlay}
+
+/* ─── Main layout ─── */
+.site-wrap{position:relative;z-index:2;max-width:1100px;margin:0 auto;padding:0 20px}
+
+/* ─── HERO ─── */
+.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;position:relative;padding:80px 20px 60px}
+
+.hero-badge{display:inline-flex;align-items:center;gap:10px;font-size:11px;letter-spacing:5px;color:var(--gold);text-transform:uppercase;margin-bottom:24px;opacity:0;animation:fadeUp .8s ease .2s forwards}
+.hero-badge::before,.hero-badge::after{content:'';width:30px;height:1px;background:var(--gold-dim)}
+
+.hero-title{font-family:'Noto Serif TC',serif;font-size:clamp(52px,10vw,96px);font-weight:900;line-height:1;letter-spacing:8px;color:var(--gold-light);text-shadow:0 0 60px rgba(201,168,76,.4),0 0 120px rgba(201,168,76,.15);margin-bottom:8px;opacity:0;animation:fadeUp .9s ease .3s forwards}
+.hero-sub{font-family:'Noto Serif TC',serif;font-size:clamp(14px,2.5vw,20px);letter-spacing:10px;color:var(--gold-dim);margin-bottom:32px;opacity:0;animation:fadeUp .9s ease .45s forwards}
+.hero-desc{max-width:500px;font-size:14px;color:#9a7850;line-height:2;letter-spacing:.5px;margin-bottom:48px;opacity:0;animation:fadeUp .9s ease .55s forwards}
+
+.hero-divider{display:flex;align-items:center;gap:16px;margin:0 auto 48px;width:100%;max-width:360px;opacity:0;animation:fadeUp .9s ease .6s forwards}
+.hero-divider-line{flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--gold-dim),transparent)}
+.hero-divider span{font-size:22px;color:var(--gold)}
+
+.cta-group{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;opacity:0;animation:fadeUp .9s ease .7s forwards}
+.btn-primary{padding:14px 36px;background:linear-gradient(135deg,#8a6018,var(--gold),#8a6018);border:none;border-radius:8px;color:var(--ink);font-family:'Noto Serif TC',serif;font-size:15px;font-weight:700;letter-spacing:4px;cursor:pointer;transition:all .3s;position:relative;overflow:hidden;text-decoration:none;display:inline-block}
+.btn-primary::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--gold),var(--gold-light),var(--gold));opacity:0;transition:opacity .3s}
+.btn-primary:hover::after{opacity:1}
+.btn-primary span{position:relative;z-index:1}
+.btn-secondary{padding:13px 32px;background:transparent;border:1px solid var(--gold-dim);border-radius:8px;color:var(--gold);font-family:'Noto Serif TC',serif;font-size:14px;letter-spacing:3px;cursor:pointer;transition:all .3s;text-decoration:none;display:inline-block}
+.btn-secondary:hover{background:rgba(201,168,76,.08);border-color:var(--gold)}
+
+.scroll-hint{position:absolute;bottom:32px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--gold-dim);font-size:11px;letter-spacing:3px;animation:bounce 2s ease infinite;opacity:0;animation:fadeUp .9s ease 1.2s forwards,bounce 2s ease 2s infinite}
+.scroll-hint svg{width:20px;height:20px;stroke:var(--gold-dim);fill:none}
+@keyframes bounce{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(6px)}}
+
+/* ─── Feature Strip ─── */
+.features{padding:80px 20px;background:linear-gradient(180deg,var(--ink) 0%,var(--ink2) 50%,var(--ink) 100%)}
+.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;max-width:900px;margin:0 auto}
+@media(max-width:640px){.features-grid{grid-template-columns:1fr}}
+.feat-card{background:rgba(201,168,76,.04);border:1px solid rgba(201,168,76,.15);border-radius:var(--radius);padding:32px 24px;text-align:center;transition:all .3s;position:relative;overflow:hidden}
+.feat-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(201,168,76,.06),transparent);opacity:0;transition:opacity .3s}
+.feat-card:hover::before{opacity:1}
+.feat-card:hover{border-color:rgba(201,168,76,.4);transform:translateY(-4px)}
+.feat-icon{font-family:'Noto Serif TC',serif;font-size:36px;color:var(--gold);margin-bottom:16px;display:block}
+.feat-title{font-family:'Noto Serif TC',serif;font-size:18px;color:var(--gold-light);letter-spacing:3px;margin-bottom:10px}
+.feat-desc{font-size:13px;color:#7a6040;line-height:1.9;letter-spacing:.3px}
+
+/* ─── Section headers ─── */
+.sec-header{text-align:center;margin-bottom:48px}
+.sec-eyebrow{font-size:10px;letter-spacing:6px;color:var(--gold-dim);text-transform:uppercase;margin-bottom:12px;display:block}
+.sec-title{font-family:'Noto Serif TC',serif;font-size:clamp(24px,4vw,36px);font-weight:700;color:var(--gold-light);letter-spacing:5px;margin-bottom:12px}
+.sec-sub{font-size:13px;color:#7a5c38;letter-spacing:1px}
+.sec-ornament{display:flex;align-items:center;gap:12px;justify-content:center;margin-top:16px}
+.sec-ornament-line{width:60px;height:1px;background:linear-gradient(90deg,transparent,var(--gold-dim),transparent)}
+
+/* ─── Main App ─── */
+.app-section{padding:80px 20px;background:var(--ink2)}
+.app-wrapper{max-width:860px;margin:0 auto}
+
+/* Tabs */
+.tabs-nav{display:flex;background:rgba(0,0,0,.4);border-radius:14px 14px 0 0;overflow:hidden;border:1px solid rgba(201,168,76,.18);border-bottom:none}
+.tab-btn{flex:1;padding:16px 10px;font-family:'Noto Serif TC',serif;font-size:13px;letter-spacing:3px;color:#6a4a28;background:transparent;border:none;cursor:pointer;transition:all .25s;border-right:1px solid rgba(201,168,76,.12)}
+.tab-btn:last-child{border-right:none}
+.tab-btn.active{background:rgba(201,168,76,.1);color:var(--gold-light)}
+.tab-btn:hover:not(.active){color:var(--gold);background:rgba(201,168,76,.05)}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+/* Card */
+.app-card{background:rgba(20,12,4,.92);border:1px solid rgba(201,168,76,.2);border-radius:0 0 14px 14px;padding:32px;backdrop-filter:blur(8px)}
+.inner-card{background:rgba(20,12,4,.92);border:1px solid rgba(201,168,76,.2);border-radius:14px;padding:32px;margin-bottom:20px}
+
+/* Form */
+.form-section-title{font-family:'Noto Serif TC',serif;font-size:12px;color:var(--gold);letter-spacing:4px;margin-bottom:20px;display:flex;align-items:center;gap:10px}
+.form-section-title::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(201,168,76,.3),transparent)}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:520px){.fgrid{grid-template-columns:1fr}}
+.fg{display:flex;flex-direction:column;gap:8px}
+.fg label{font-size:11px;color:#8a6040;letter-spacing:3px;text-transform:uppercase}
+.fg select,.fg input[type=text]{background:rgba(8,4,0,.7);border:1px solid rgba(201,168,76,.25);border-radius:8px;color:var(--paper);font-family:'Noto Sans TC',sans-serif;font-size:14px;padding:11px 14px;outline:none;appearance:none;transition:all .25s;width:100%}
+.fg select:focus,.fg input[type=text]:focus{border-color:rgba(201,168,76,.7);box-shadow:0 0 16px rgba(201,168,76,.12)}
+.fg select option{background:#150c02}
+
+.radio-g{display:flex;gap:10px}
+.rbtn{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;padding:11px;background:rgba(8,4,0,.6);border:1px solid rgba(201,168,76,.22);border-radius:8px;cursor:pointer;font-size:13px;letter-spacing:1px;transition:all .25s}
+.rbtn:has(input:checked){background:rgba(201,168,76,.12);border-color:rgba(201,168,76,.65);color:var(--gold-light)}
+.rbtn input{position:absolute;opacity:0;width:0;height:0}
+
+.timeg{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:6px}
+.tbtn{padding:9px 4px;background:rgba(8,4,0,.5);border:1px solid rgba(201,168,76,.15);border-radius:7px;color:#6a4828;font-size:10px;text-align:center;cursor:pointer;transition:all .22s;line-height:1.5}
+.tbtn:hover{border-color:rgba(201,168,76,.4);color:var(--gold)}
+.tbtn.active{background:rgba(201,168,76,.15);border-color:var(--gold);color:var(--gold-light)}
+.tbtn small{font-size:9px;opacity:.7;display:block}
+
+.calc-btn{width:100%;padding:15px;background:linear-gradient(135deg,#7a5510,var(--gold),#7a5510);border:none;border-radius:10px;color:var(--ink);font-family:'Noto Serif TC',serif;font-size:16px;font-weight:700;letter-spacing:5px;cursor:pointer;transition:all .3s;margin-top:8px;position:relative;overflow:hidden}
+.calc-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--gold),var(--gold-light),var(--gold));opacity:0;transition:opacity .25s}
+.calc-btn:hover::before{opacity:1}
+.calc-btn span{position:relative;z-index:1}
+.calc-btn:active{transform:scale(.99)}
+
+/* Result */
+.result-show{animation:fadeUp .55s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+
+.bz-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:22px}
+.bz-col{background:rgba(8,4,0,.7);border:1px solid rgba(201,168,76,.28);border-radius:12px;padding:16px 8px;text-align:center;transition:all .25s}
+.bz-col:hover{border-color:rgba(201,168,76,.55);background:rgba(201,168,76,.05)}
+.bz-lbl{font-size:9px;color:#7a5030;letter-spacing:3px;margin-bottom:10px}
+.bz-tg{font-family:'Noto Serif TC',serif;font-size:28px;font-weight:700;line-height:1}
+.bz-el{font-size:9px;margin:5px 0;opacity:.5;letter-spacing:1px}
+.bz-dz{font-family:'Noto Serif TC',serif;font-size:25px;font-weight:600;line-height:1}
+.wd{color:#7ec87e}.fi{color:#ff7a56}.ea{color:#c8a456}.me{color:#aacce0}.wa{color:#58a4cc}
+
+.etag-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:22px}
+.etag{padding:5px 14px;border-radius:20px;font-size:11px;letter-spacing:1px}
+.etag.wd{background:rgba(126,200,126,.1);border:1px solid rgba(126,200,126,.3)}
+.etag.fi{background:rgba(255,122,86,.1);border:1px solid rgba(255,122,86,.3)}
+.etag.ea{background:rgba(200,164,86,.1);border:1px solid rgba(200,164,86,.3)}
+.etag.me{background:rgba(170,204,224,.1);border:1px solid rgba(170,204,224,.3)}
+.etag.wa{background:rgba(88,164,204,.1);border:1px solid rgba(88,164,204,.3)}
+
+.fate-blk{margin-bottom:22px;padding-bottom:20px;border-bottom:1px solid rgba(201,168,76,.08)}
+.fate-blk:last-child{border-bottom:none}
+.fate-blk h4{font-family:'Noto Serif TC',serif;font-size:13px;color:var(--gold);letter-spacing:3px;margin-bottom:10px}
+.fate-blk p{font-size:13px;color:#c8b08a;line-height:2;letter-spacing:.4px}
+.hi{color:var(--gold-light);font-weight:500}
+
+.lb-row{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.lb-lbl{font-size:11px;color:#8a6040;width:34px;text-align:right;letter-spacing:1px}
+.lb-bg{flex:1;height:5px;background:rgba(255,255,255,.04);border-radius:3px;overflow:hidden}
+.lb-fill{height:100%;border-radius:3px;transition:width 1.2s ease .1s}
+.lb-sc{font-size:11px;color:var(--gold);width:28px;text-align:right}
+
+/* Decade luck */
+.dl-scroll{overflow-x:auto;padding-bottom:6px;margin-bottom:4px}
+.dl-scroll::-webkit-scrollbar{height:3px}
+.dl-scroll::-webkit-scrollbar-thumb{background:var(--gold-dim);border-radius:2px}
+.dl-track{display:flex;gap:10px;min-width:max-content}
+.dl-item{background:rgba(8,4,0,.6);border:1px solid rgba(201,168,76,.22);border-radius:10px;padding:14px 12px;text-align:center;min-width:88px;cursor:pointer;transition:all .22s}
+.dl-item:hover,.dl-item.picked{border-color:var(--gold);background:rgba(201,168,76,.08)}
+.dl-item.now{border-color:var(--gold-light);background:rgba(245,216,128,.06)}
+.dl-age{font-size:9px;color:#6a4828;margin-bottom:7px;letter-spacing:1px}
+.dl-tg{font-family:'Noto Serif TC',serif;font-size:22px;font-weight:700;line-height:1}
+.dl-dz{font-family:'Noto Serif TC',serif;font-size:20px;font-weight:600;margin-top:4px;line-height:1}
+.dl-yr{font-size:9px;color:#5a3820;margin-top:5px}
+.dl-now-tag{font-size:8px;background:rgba(245,216,128,.15);color:var(--gold-light);border-radius:4px;padding:2px 6px;margin-top:5px;letter-spacing:1px;display:inline-block}
+.detail-box{margin-top:14px;padding:16px;background:rgba(8,4,0,.45);border-radius:10px;border:1px solid rgba(201,168,76,.12);font-size:13px;color:#c0a878;line-height:1.95;display:none}
+.detail-box.show{display:block;animation:fadeUp .35s ease}
+
+/* Annual */
+.al-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px}
+.al-card{background:rgba(8,4,0,.5);border:1px solid rgba(201,168,76,.18);border-radius:9px;padding:10px 8px;text-align:center;cursor:pointer;transition:all .2s}
+.al-card:hover{border-color:rgba(201,168,76,.45);background:rgba(201,168,76,.06)}
+.al-card.now{border-color:var(--gold-light);background:rgba(245,216,128,.05)}
+.al-year{font-size:10px;color:#7a5030;margin-bottom:4px;letter-spacing:.5px}
+.al-tg{font-family:'Noto Serif TC',serif;font-size:20px;font-weight:700}
+.al-dz{font-family:'Noto Serif TC',serif;font-size:17px;margin-top:2px}
+.al-ani{font-size:9px;color:#5a3818;margin-top:3px}
+
+/* Name */
+.char-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:22px}
+.char-card{background:rgba(8,4,0,.7);border:1px solid rgba(201,168,76,.28);border-radius:12px;padding:18px 12px;text-align:center;flex:1;min-width:90px;transition:all .25s}
+.char-card:hover{border-color:rgba(201,168,76,.55)}
+.char-zh{font-family:'Noto Serif TC',serif;font-size:36px;font-weight:700;color:var(--gold-light);margin-bottom:6px}
+.char-strokes{font-size:11px;color:#7a5030;letter-spacing:1px}
+.char-wx{font-size:13px;margin-top:5px;font-weight:500;letter-spacing:1px}
+.num-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:22px}
+@media(max-width:480px){.num-grid{grid-template-columns:repeat(3,1fr)}}
+.num-box{background:rgba(8,4,0,.6);border-radius:10px;padding:14px 6px;text-align:center;border:1px solid rgba(201,168,76,.18)}
+.num-lbl{font-size:9px;color:#7a5030;letter-spacing:2px;margin-bottom:6px}
+.num-val{font-family:'Noto Serif TC',serif;font-size:24px;font-weight:700}
+.num-name{font-size:9px;color:#5a3818;margin-top:3px}
+
+.ornament{text-align:center;color:var(--gold-dim);font-size:14px;letter-spacing:10px;margin:12px 0;opacity:.4}
+
+/* ─── Testimonials ─── */
+.testimonials{padding:80px 20px;background:var(--ink)}
+.testi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:900px;margin:0 auto}
+@media(max-width:640px){.testi-grid{grid-template-columns:1fr}}
+.testi-card{background:rgba(201,168,76,.03);border:1px solid rgba(201,168,76,.12);border-radius:var(--radius);padding:28px 22px}
+.testi-stars{color:var(--gold);font-size:14px;margin-bottom:14px;letter-spacing:2px}
+.testi-text{font-size:13px;color:#9a7a50;line-height:1.9;margin-bottom:16px;font-style:italic}
+.testi-author{font-size:12px;color:var(--gold-dim);letter-spacing:2px}
+
+/* ─── FAQ ─── */
+.faq-section{padding:80px 20px;background:var(--ink2)}
+.faq-list{max-width:700px;margin:0 auto}
+.faq-item{border-bottom:1px solid rgba(201,168,76,.1);padding:20px 0;cursor:pointer}
+.faq-q{display:flex;justify-content:space-between;align-items:center;font-family:'Noto Serif TC',serif;font-size:14px;color:var(--gold-pale);letter-spacing:1px}
+.faq-q span{color:var(--gold-dim);font-size:18px;transition:transform .3s}
+.faq-item.open .faq-q span{transform:rotate(45deg)}
+.faq-a{font-size:13px;color:#8a6840;line-height:1.95;max-height:0;overflow:hidden;transition:max-height .4s ease,padding .3s ease;letter-spacing:.3px}
+.faq-item.open .faq-a{max-height:200px;padding-top:14px}
+
+/* ─── Footer ─── */
+footer{background:var(--ink);border-top:1px solid rgba(201,168,76,.1);padding:48px 20px 32px;text-align:center}
+.footer-logo{font-family:'Noto Serif TC',serif;font-size:24px;font-weight:700;color:var(--gold);letter-spacing:5px;margin-bottom:12px}
+.footer-links{display:flex;gap:24px;justify-content:center;flex-wrap:wrap;margin-bottom:20px}
+.footer-links a{font-size:12px;color:#5a3a18;letter-spacing:2px;text-decoration:none;transition:color .2s}
+.footer-links a:hover{color:var(--gold)}
+.footer-copy{font-size:11px;color:#3a2210;letter-spacing:1px}
+.footer-disc{font-size:11px;color:#3a2210;margin-top:8px;max-width:500px;margin-left:auto;margin-right:auto;line-height:1.7}
+
+/* ─── Sticky nav ─── */
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:16px 24px;display:flex;justify-content:space-between;align-items:center;transition:all .3s;backdrop-filter:blur(0px)}
+.nav.scrolled{background:rgba(13,8,4,.88);backdrop-filter:blur(16px);border-bottom:1px solid rgba(201,168,76,.1)}
+.nav-logo{font-family:'Noto Serif TC',serif;font-size:18px;font-weight:700;color:var(--gold);letter-spacing:4px;text-decoration:none}
+.nav-links{display:flex;gap:24px;align-items:center}
+.nav-links a{font-size:12px;color:#6a4828;letter-spacing:2px;text-decoration:none;transition:color .2s}
+.nav-links a:hover{color:var(--gold)}
+@media(max-width:600px){.nav-links{display:none}}
+
+/* ─── Animations ─── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+.reveal{opacity:0;transform:translateY(20px);transition:opacity .7s ease,transform .7s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+
+/* ─── Empty state ─── */
+.empty-state{text-align:center;padding:48px 0;color:#4a2e12;font-family:'Noto Serif TC',serif;font-size:14px;letter-spacing:3px}
+</style>
+</head>
+<body>
+
+<!-- Canvas bg -->
+<canvas id="bgCanvas"></canvas>
+
+<!-- Nav -->
+<nav class="nav" id="nav">
+  <a class="nav-logo" href="#">命理全析</a>
+  <div class="nav-links">
+    <a href="#app">立即算命</a>
+    <a href="#features">功能介紹</a>
+    <a href="#faq">常見問題</a>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-badge">Ancient Chinese Destiny · 傳統命理智慧</div>
+  <h1 class="hero-title">命理全析</h1>
+  <div class="hero-sub">生辰八字 · 大運流年 · 姓名測字</div>
+  <p class="hero-desc">以傳統天干地支學說推算命格，深度解析您的五行命局、十年大運走勢、年年流年吉凶，並提供姓名五格數理全面分析。</p>
+  <div class="hero-divider"><div class="hero-divider-line"></div><span>☯</span><div class="hero-divider-line"></div></div>
+  <div class="cta-group">
+    <a href="#app" class="btn-primary"><span>✦ 立即免費算命 ✦</span></a>
+    <a href="#features" class="btn-secondary">了解更多</a>
+  </div>
+  <div class="scroll-hint">
+    <svg viewBox="0 0 24 24" stroke-width="1.5"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+    向下探索
+  </div>
+</section>
+
+<!-- Features -->
+<section class="features" id="features">
+  <div class="site-wrap">
+    <div class="sec-header reveal">
+      <span class="sec-eyebrow">Our Services</span>
+      <h2 class="sec-title">三大命理服務</h2>
+      <div class="sec-ornament"><div class="sec-ornament-line"></div><span style="color:var(--gold-dim);font-size:16px">✦</span><div class="sec-ornament-line"></div></div>
+    </div>
+    <div class="features-grid">
+      <div class="feat-card reveal">
+        <span class="feat-icon">八</span>
+        <div class="feat-title">生辰八字</div>
+        <p class="feat-desc">依出生年月日時推算四柱八字，分析五行強弱，解讀命格特質、事業財運、感情婚姻與健康狀況。</p>
+      </div>
+      <div class="feat-card reveal">
+        <span class="feat-icon">運</span>
+        <div class="feat-title">大運流年</div>
+        <p class="feat-desc">推算一生八段大運走勢，每十年一換；並提供流年年年吉凶預測，把握人生最佳時機。</p>
+      </div>
+      <div class="feat-card reveal">
+        <span class="feat-icon">字</span>
+        <div class="feat-title">姓名測字</div>
+        <p class="feat-desc">透過姓名筆畫計算天格、地格、人格、外格、總格五格數理，結合五行屬性全面剖析名字吉凶。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- App Section -->
+<section class="app-section" id="app">
+  <div class="site-wrap">
+    <div class="sec-header reveal">
+      <span class="sec-eyebrow">Free Fortune Reading</span>
+      <h2 class="sec-title">免費算命</h2>
+      <p class="sec-sub">輸入您的生辰資料，即刻獲得專業命理分析</p>
+      <div class="sec-ornament"><div class="sec-ornament-line"></div><span style="color:var(--gold-dim);font-size:16px">✦</span><div class="sec-ornament-line"></div></div>
+    </div>
+    <div class="app-wrapper reveal">
+      <div class="tabs-nav">
+        <button class="tab-btn active" onclick="switchTab('bazi')">八字命盤</button>
+        <button class="tab-btn" onclick="switchTab('luck')">大運流年</button>
+        <button class="tab-btn" onclick="switchTab('name')">姓名測字</button>
+      </div>
+      <div class="app-card">
+
+        <!-- TAB 1 -->
+        <div class="tab-panel active" id="tab-bazi">
+          <div class="form-section-title">輸入生辰資料</div>
+          <div class="fgrid">
+            <div class="fg"><label>出生年份</label><select id="year"></select></div>
+            <div class="fg"><label>出生月份</label><select id="month">
+              <option value="1">一月</option><option value="2">二月</option><option value="3">三月</option>
+              <option value="4">四月</option><option value="5">五月</option><option value="6">六月</option>
+              <option value="7">七月</option><option value="8">八月</option><option value="9">九月</option>
+              <option value="10">十月</option><option value="11">十一月</option><option value="12">十二月</option>
+            </select></div>
+            <div class="fg"><label>出生日期</label><select id="day"></select></div>
+            <div class="fg"><label>性別</label>
+              <div class="radio-g">
+                <label class="rbtn"><input type="radio" name="gender" value="male" checked><span>♂ 男命</span></label>
+                <label class="rbtn"><input type="radio" name="gender" value="female"><span>♀ 女命</span></label>
+              </div>
+            </div>
+          </div>
+          <div class="fg" style="margin-top:16px">
+            <label>出生時辰（可略）</label>
+            <div class="timeg" id="timeSelect">
+              <div class="tbtn" data-h="23">子時<small>23–1時</small></div>
+              <div class="tbtn" data-h="1">丑時<small>1–3時</small></div>
+              <div class="tbtn" data-h="3">寅時<small>3–5時</small></div>
+              <div class="tbtn" data-h="5">卯時<small>5–7時</small></div>
+              <div class="tbtn" data-h="7">辰時<small>7–9時</small></div>
+              <div class="tbtn" data-h="9">巳時<small>9–11時</small></div>
+              <div class="tbtn" data-h="11">午時<small>11–13時</small></div>
+              <div class="tbtn" data-h="13">未時<small>13–15時</small></div>
+              <div class="tbtn" data-h="15">申時<small>15–17時</small></div>
+              <div class="tbtn" data-h="17">酉時<small>17–19時</small></div>
+              <div class="tbtn" data-h="19">戌時<small>19–21時</small></div>
+              <div class="tbtn" data-h="21">亥時<small>21–23時</small></div>
+            </div>
+          </div>
+          <button class="calc-btn" onclick="calculate()" style="margin-top:22px"><span>✦ 推算命盤 ✦</span></button>
+
+          <div id="baziResult" style="display:none;margin-top:28px" class="result-show">
+            <div class="ornament">❧ ❧ ❧</div>
+            <div class="form-section-title" style="margin-top:18px">四柱八字</div>
+            <div class="bz-grid" id="bzGrid"></div>
+            <div class="etag-row" id="etagRow"></div>
+            <div id="fateContent"></div>
+          </div>
+        </div>
+
+        <!-- TAB 2 -->
+        <div class="tab-panel" id="tab-luck">
+          <div id="luckEmpty" class="empty-state">請先在「八字命盤」填入資料並推算</div>
+          <div id="luckContent" style="display:none">
+            <div class="form-section-title">大運（每十年一換）</div>
+            <div class="dl-scroll"><div class="dl-track" id="dlTrack"></div></div>
+            <div class="detail-box" id="dlDetail"></div>
+            <div class="form-section-title" style="margin-top:28px">流年運勢</div>
+            <div class="al-grid" id="alGrid"></div>
+            <div class="detail-box" id="alDetail"></div>
+          </div>
+        </div>
+
+        <!-- TAB 3 -->
+        <div class="tab-panel" id="tab-name">
+          <div class="form-section-title">輸入姓名</div>
+          <div class="fg" style="margin-bottom:16px">
+            <label>中文姓名（1–4字）</label>
+            <input type="text" id="nameInput" placeholder="請輸入中文姓名" maxlength="4"
+              style="font-size:20px;text-align:center;letter-spacing:10px;font-family:'Noto Serif TC',serif;padding:14px">
+          </div>
+          <button class="calc-btn" onclick="analyzeName()"><span>✦ 測字析命 ✦</span></button>
+          <div id="nameResult" style="display:none;margin-top:28px" class="result-show">
+            <div class="ornament">❧ ❧ ❧</div>
+            <div class="form-section-title" style="margin-top:18px">各字分析</div>
+            <div class="char-row" id="charRow"></div>
+            <div class="form-section-title">五格數理</div>
+            <div class="num-grid" id="numGrid"></div>
+            <div id="nameDetail"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Testimonials -->
+<section class="testimonials reveal">
+  <div class="site-wrap">
+    <div class="sec-header">
+      <span class="sec-eyebrow">User Reviews</span>
+      <h2 class="sec-title">用戶心得</h2>
+      <div class="sec-ornament"><div class="sec-ornament-line"></div><span style="color:var(--gold-dim);font-size:16px">✦</span><div class="sec-ornament-line"></div></div>
+    </div>
+    <div class="testi-grid">
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-text">「準確率很高，大運分析讓我了解為何這幾年事業特別順利，原來是走了金運！」</p>
+        <div class="testi-author">— 台北 · 陳小姐</div>
+      </div>
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-text">「姓名測字功能很詳細，幫孩子測了幾個名字選項，最終選了人格數最好的那個。」</p>
+        <div class="testi-author">— 台中 · 林先生</div>
+      </div>
+      <div class="testi-card">
+        <div class="testi-stars">★★★★☆</div>
+        <p class="testi-text">「流年預測說今年有貴人，果然下半年遇到了好合作夥伴，令人驚喜！」</p>
+        <div class="testi-author">— 高雄 · 張小姐</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="faq-section" id="faq">
+  <div class="site-wrap">
+    <div class="sec-header reveal">
+      <span class="sec-eyebrow">FAQ</span>
+      <h2 class="sec-title">常見問題</h2>
+      <div class="sec-ornament"><div class="sec-ornament-line"></div><span style="color:var(--gold-dim);font-size:16px">✦</span><div class="sec-ornament-line"></div></div>
+    </div>
+    <div class="faq-list reveal">
+      <div class="faq-item" onclick="toggleFaq(this)">
+        <div class="faq-q">什麼是生辰八字？<span>+</span></div>
+        <div class="faq-a">生辰八字是中國傳統命理學的核心，依據出生的年、月、日、時，各取一組天干地支，共四組八個字，稱為「四柱八字」。每柱代表不同的人生層面，透過五行相生相剋的原理推算命格運勢。</div>
+      </div>
+      <div class="faq-item" onclick="toggleFaq(this)">
+        <div class="faq-q">不知道出生時辰還能算命嗎？<span>+</span></div>
+        <div class="faq-a">可以的！時辰（時柱）雖然能提供更精準的分析，但即使不知道，仍可透過年柱、月柱、日柱推算主要命格與大運走勢，結果仍具有相當參考價值。</div>
+      </div>
+      <div class="faq-item" onclick="toggleFaq(this)">
+        <div class="faq-q">大運是什麼意思？<span>+</span></div>
+        <div class="faq-a">大運是人生每十年的運勢走向，由出生月柱順推或逆推而來。每個人一生約走八段大運，每段大運的天干地支五行，會與原本命局產生互動，影響那十年的吉凶禍福。</div>
+      </div>
+      <div class="faq-item" onclick="toggleFaq(this)">
+        <div class="faq-q">姓名五格數理如何影響命運？<span>+</span></div>
+        <div class="faq-a">姓名五格源自熊崎健翁的姓名學，透過計算姓名各字的筆畫，推算天格（先天運）、地格（後天運）、人格（主運）、外格（社交運）、總格（整體運勢）。好的五格數理能對命局產生正面輔助效果。</div>
+      </div>
+      <div class="faq-item" onclick="toggleFaq(this)">
+        <div class="faq-q">這個算命網站免費嗎？<span>+</span></div>
+        <div class="faq-a">是的，本網站所有功能完全免費，包括生辰八字命盤、大運流年分析及姓名測字，無需註冊即可使用。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-logo">命理全析</div>
+  <div class="footer-links">
+    <a href="#">關於我們</a>
+    <a href="#">隱私政策</a>
+    <a href="#">服務條款</a>
+    <a href="#app">立即算命</a>
+  </div>
+  <div class="footer-copy">© 2025 命理全析 · 傳統命理智慧</div>
+  <div class="footer-disc">本網站所有內容僅供娛樂與文化參考，不構成任何專業建議。命理學說係傳統民俗文化，請理性參考，凡事仍以自身判斷為主。</div>
+</footer>
+
+<script>
+// ─── Canvas starfield / hexagrams ───
+(function(){
+  const c=document.getElementById('bgCanvas');
+  const ctx=c.getContext('2d');
+  let W,H,particles=[];
+  function resize(){W=c.width=window.innerWidth;H=c.height=window.innerHeight;}
+  resize();window.addEventListener('resize',()=>{resize();init();});
+  function rand(a,b){return a+Math.random()*(b-a);}
+  function init(){
+    particles=[];
+    // Stars
+    for(let i=0;i<180;i++){
+      particles.push({type:'star',x:rand(0,W),y:rand(0,H),r:rand(.4,1.6),a:rand(.1,.9),da:rand(-.004,.004),speed:rand(.03,.12)});
+    }
+    // Floating trigrams
+    const trigrams=['☰','☷','☳','☴','☵','☲','☶','☱'];
+    for(let i=0;i<12;i++){
+      particles.push({type:'glyph',x:rand(0,W),y:rand(0,H),char:trigrams[i%8],a:rand(.04,.14),size:rand(18,42),vy:rand(-.08,.08),vx:rand(-.04,.04),rot:rand(0,Math.PI*2),rotSpeed:rand(-.002,.002)});
+    }
+  }
+  init();
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    // Deep gradient bg
+    const g=ctx.createRadialGradient(W/2,0,0,W/2,H*.6,Math.max(W,H)*.9);
+    g.addColorStop(0,'rgba(55,28,4,.6)');g.addColorStop(.5,'rgba(20,10,2,.8)');g.addColorStop(1,'rgba(8,4,1,1)');
+    ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+    particles.forEach(p=>{
+      if(p.type==='star'){
+        p.a+=p.da;
+        if(p.a<=.05||p.a>=.95)p.da*=-1;
+        p.y-=p.speed;if(p.y<-2)p.y=H+2;
+        ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+        ctx.fillStyle=`rgba(245,220,140,${p.a})`;ctx.fill();
+      } else {
+        p.x+=p.vx;p.y+=p.vy;p.rot+=p.rotSpeed;
+        if(p.x<-50)p.x=W+50;if(p.x>W+50)p.x=-50;
+        if(p.y<-50)p.y=H+50;if(p.y>H+50)p.y=-50;
+        ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot);
+        ctx.font=`${p.size}px 'Noto Serif TC', serif`;
+        ctx.fillStyle=`rgba(201,168,76,${p.a})`;
+        ctx.textAlign='center';ctx.textBaseline='middle';
+        ctx.fillText(p.char,0,0);ctx.restore();
+      }
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+// ─── Nav scroll ───
+window.addEventListener('scroll',()=>{
+  document.getElementById('nav').classList.toggle('scrolled',window.scrollY>40);
+});
+
+// ─── Reveal on scroll ───
+const observer=new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');});
+},{threshold:.1});
+document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));
+
+// ─── Tab switch ───
+function switchTab(id){
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',['bazi','luck','name'][i]===id));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  if(id==='luck'&&calcData)buildLuck();
+}
+
+// ─── FAQ ───
+function toggleFaq(el){
+  const wasOpen=el.classList.contains('open');
+  document.querySelectorAll('.faq-item').forEach(f=>f.classList.remove('open'));
+  if(!wasOpen)el.classList.add('open');
+}
+
+// ─── Form init ───
+const ySel=document.getElementById('year');
+for(let y=2010;y>=1924;y--){const o=document.createElement('option');o.value=y;o.textContent=y+'年';ySel.appendChild(o);}
+ySel.value=1990;
+function updateDays(){
+  const m=+document.getElementById('month').value,y=+document.getElementById('year').value;
+  const max=new Date(y,m,0).getDate();
+  const dSel=document.getElementById('day'),cur=+dSel.value||1;
+  dSel.innerHTML='';
+  for(let d=1;d<=max;d++){const o=document.createElement('option');o.value=d;o.textContent=d+'日';dSel.appendChild(o);}
+  dSel.value=Math.min(cur,max);
+}
+document.getElementById('month').addEventListener('change',updateDays);
+document.getElementById('year').addEventListener('change',updateDays);
+updateDays();
+document.getElementById('month').value=6;updateDays();document.getElementById('day').value=15;
+
+let selHour=null;
+document.querySelectorAll('.tbtn').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('.tbtn').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');selHour=+b.dataset.h;
+  });
+});
+
+// ─── Bazi engine ───
+const TG=['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+const DZ=['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+const TGE=['wd','wd','fi','fi','ea','ea','me','me','wa','wa'];
+const DZE=['wa','ea','wd','wd','ea','fi','fi','ea','me','me','ea','wa'];
+const ECN={wd:'木',fi:'火',ea:'土',me:'金',wa:'水'};
+const ANIMAL=['鼠','牛','虎','兔','龍','蛇','馬','羊','猴','雞','狗','豬'];
+
+function getYP(y){const t=(y-4)%10,d=(y-4)%12;return{tg:TG[((t%10)+10)%10],dz:DZ[((d%12)+12)%12],te:TGE[((t%10)+10)%10],de:DZE[((d%12)+12)%12]};}
+function getMP(y,m){const yt=(y-4)%10,ti=((yt%5)*2+(m-1))%10,di=(m+1)%12;return{tg:TG[ti],dz:DZ[di],te:TGE[ti],de:DZE[di]};}
+function getDP(y,m,d){
+  const diff=Math.floor((new Date(y,m-1,d)-new Date(1900,0,1))/86400000);
+  const t=((diff%10)+10)%10,dz=((diff%12)+12)%12;
+  return{tg:TG[t],dz:DZ[dz],te:TGE[t],de:DZE[dz],tIdx:t};
+}
+function getHP(h,dti){
+  const hi=h===23?0:Math.floor((h+1)/2)%12,ti=(dti%5*2+hi)%10;
+  return{tg:TG[ti],dz:DZ[hi],te:TGE[ti],de:DZE[hi]};
+}
+function getDecadeLuck(mp,gender,birthYear){
+  const yTg=(birthYear-4)%10,yangY=yTg%2===0,isMale=gender==='male';
+  const forward=(isMale&&yangY)||(!isMale&&!yangY);
+  const res=[];
+  for(let i=1;i<=8;i++){
+    const step=forward?i:-i;
+    const ti=((TG.indexOf(mp.tg)+step*3)%10+10)%10;
+    const di=((DZ.indexOf(mp.dz)+step*3)%12+12)%12;
+    const sa=i*10-9;
+    res.push({tg:TG[ti],dz:DZ[di],te:TGE[ti],de:DZE[di],startAge:sa,endAge:sa+9,startYear:birthYear+sa-1});
+  }
+  return res;
+}
+function getAnnualYears(birthYear){
+  const cy=2026,years=[];
+  for(let y=Math.max(birthYear+1,cy-12);y<=cy+12;y++){
+    const t=(y-4)%10,d=(y-4)%12;
+    years.push({year:y,tg:TG[((t%10)+10)%10],dz:DZ[((d%12)+12)%12],te:TGE[((t%10)+10)%10],de:DZE[((d%12)+12)%12],animal:ANIMAL[((d%12)+12)%12],age:y-birthYear});
+  }
+  return years;
+}
+function seededRand(seed){let x=Math.sin(seed+1)*10000;return x-Math.floor(x);}
+
+const FATE={
+  wd:{career:'事業心旺盛，富創業精神，適合從事教育、文化、藝術或環境相關工作，以仁心待人者多能得到提拔。',love:'感情細膩溫柔，重視精神交流，對伴侶忠誠，但有時過於理想化，宜降低期待。',wealth:'財運穩健，宜做長期投資，忌急功近利，積少成多方為上策。',health:'注意肝膽保養，多親近大自然，避免長期憂鬱或壓抑情緒。'},
+  fi:{career:'個性熱情積極，口才出眾，適合媒體、行銷、表演或管理工作，有天生領袖氣質。',love:'愛情熱烈直接，感情豐富，但需注意衝動行事，建議多聆聽伴侶意見。',wealth:'財運起伏較大，適合短線操作，切忌賭博投機，宜廣結人脈以獲貴人助。',health:'注意心臟與血壓，保持規律作息，避免過度興奮。'},
+  ea:{career:'個性穩重踏實，值得信賴，適合房地產、農業、政府或金融工作，晚年運勢尤佳。',love:'感情穩定持久，重視家庭，是可靠伴侶，感情表達含蓄，宜多溝通。',wealth:'財運平穩，善於積累，適合保守型投資，穩中求勝。',health:'注意脾胃消化系統，飲食宜清淡規律。'},
+  me:{career:'意志堅定，原則性強，適合法律、軍事、機械或外科醫療工作，執行力出眾。',love:'感情專一但不善表達，需主動溝通才能維持關係融洽。',wealth:'財運良好，善於理財，有開創財源能力，中年後財運漸入佳境。',health:'注意肺部與呼吸道，多做有氧運動。'},
+  wa:{career:'聰明機靈，適應力強，適合貿易、旅遊、外交或哲學研究工作，貴人緣佳。',love:'感情豐富多變，浪漫多情，適合找穩重型的伴侶互補。',wealth:'財運變動大，宜廣結善緣，財富常由貴人相助而來。',health:'注意腎臟與泌尿系統，多補水分，保持充足睡眠。'}
+};
+const DL_DESC={wd:'此大運木氣旺盛，主事業有發展，貴人緣佳，宜積極進取，感情方面亦有好緣分。',fi:'此大運火氣昂揚，主名聲顯達，人際關係活躍，宜大膽展現自我，防火氣過旺生衝突。',ea:'此大運土氣厚實，主財富積累，適合置產投資，家庭關係穩固，運勢平穩向上。',me:'此大運金氣肅殺，主決斷力強，財運亨通，但需防是非口舌，凡事以和為貴。',wa:'此大運水氣流動，主智慧開啟，貴人往來頻繁，宜廣開思路，防感情暗流湧動。'};
+const AL_DESC={wd:'流年木旺，宜學習進修、拓展人脈，感情有新發展，事業有上升機遇。',fi:'流年火旺，名聲機會多，宜積極表現，防意外與口舌是非，注意健康。',ea:'流年土旺，適合置產定居，財運穩健，家庭關係和諧，宜腳踏實地。',me:'流年金旺，財運佳，宜簽約合作，決斷力強，防人際摩擦與官司糾紛。',wa:'流年水旺，智慧開竅，貴人相助，適合出行或轉換跑道，感情變動較多。'};
+const LUCK_COLORS={wd:'#7ec87e',fi:'#ff7a56',ea:'#c8a456',me:'#aacce0',wa:'#58a4cc'};
+
+let calcData=null;
+function calculate(){
+  const year=+document.getElementById('year').value;
+  const month=+document.getElementById('month').value;
+  const day=+document.getElementById('day').value;
+  const gender=document.querySelector('input[name=gender]:checked').value;
+  const yp=getYP(year),mp=getMP(year,month),dp=getDP(year,month,day);
+  const hp=selHour!==null?getHP(selHour,dp.tIdx):null;
+  const pillars=[{lbl:'年柱',p:yp},{lbl:'月柱',p:mp},{lbl:'日柱',p:dp},{lbl:'時柱',p:hp,unk:!hp}];
+  const ec={wd:0,fi:0,ea:0,me:0,wa:0};
+  pillars.forEach(({p,unk})=>{if(!unk&&p){ec[p.te]++;ec[p.de]++;}});
+
+  const bzg=document.getElementById('bzGrid');bzg.innerHTML='';
+  pillars.forEach(({lbl,p,unk})=>{
+    const c=document.createElement('div');c.className='bz-col';
+    if(unk)c.innerHTML=`<div class="bz-lbl">${lbl}</div><div class="bz-tg" style="color:#2a1808">？</div><div class="bz-el">─</div><div class="bz-dz" style="color:#2a1808">？</div>`;
+    else c.innerHTML=`<div class="bz-lbl">${lbl}</div><div class="bz-tg ${p.te}">${p.tg}</div><div class="bz-el ${p.te}">${ECN[p.te]}</div><div class="bz-dz ${p.de}">${p.dz}</div>`;
+    bzg.appendChild(c);
+  });
+
+  const er=document.getElementById('etagRow');er.innerHTML='';
+  Object.entries(ec).sort((a,b)=>b[1]-a[1]).filter(([,v])=>v>0).forEach(([e,n])=>{
+    const t=document.createElement('span');t.className=`etag ${e}`;t.textContent=`${ECN[e]} ×${n}`;er.appendChild(t);
+  });
+
+  const sorted=Object.entries(ec).sort((a,b)=>b[1]-a[1]);
+  const dominant=sorted[0][0],dm=dp.te;
+  const animal=ANIMAL[(year-4+120)%12];
+  const lc=LUCK_COLORS[dm]||'#c8a456';
+  const la=[{l:'事業',s:55+Math.floor(seededRand(year+month)*35)},{l:'財運',s:50+Math.floor(seededRand(year+day)*40)},{l:'感情',s:55+Math.floor(seededRand(year+month+day)*35)},{l:'健康',s:60+Math.floor(seededRand(year*2)*30)},{l:'貴人',s:45+Math.floor(seededRand(year+3)*45)}];
+
+  document.getElementById('fateContent').innerHTML=`
+    <div class="fate-blk"><h4>命格總覽</h4><p>生於<span class="hi">${year}年（${animal}年）</span>，日主為<span class="hi ${dm}">${dp.tg}（${ECN[dm]}）</span>。命局五行以<span class="hi ${dominant}">${ECN[dominant]}</span>最旺，${dominant===dm?'日主得令，意志堅定，個性鮮明。':'日主受制，宜善用環境之力，借助他人之勢方能成就事業。'}</p></div>
+    <div class="fate-blk"><h4>事業與財運</h4><p>${FATE[dm].career}</p><p style="margin-top:8px">${FATE[dm].wealth}</p></div>
+    <div class="fate-blk"><h4>感情與家庭</h4><p>${FATE[dm].love}</p></div>
+    <div class="fate-blk"><h4>健康提示</h4><p>${FATE[dm].health}</p></div>
+    <div class="fate-blk"><h4>各方面運勢</h4>${la.map(({l,s})=>`<div class="lb-row"><span class="lb-lbl">${l}</span><div class="lb-bg"><div class="lb-fill" style="width:0%;background:${lc}" data-w="${s}"></div></div><span class="lb-sc">${s}</span></div>`).join('')}</div>
+    <div class="ornament">❧ 以上僅供娛樂參考 ❧</div>`;
+
+  setTimeout(()=>{document.querySelectorAll('.lb-fill').forEach(f=>{f.style.width=f.dataset.w+'%';});},100);
+  document.getElementById('baziResult').style.display='block';
+  calcData={year,month,day,gender,yp,mp,dp,hp,dm,dominant};
+  document.getElementById('baziResult').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function buildLuck(){
+  if(!calcData)return;
+  const {year,mp,dp,dm,gender}=calcData;
+  document.getElementById('luckEmpty').style.display='none';
+  document.getElementById('luckContent').style.display='block';
+  const dl=getDecadeLuck(mp,gender,year);
+  const cy=2026,ca=cy-year;
+  const track=document.getElementById('dlTrack');track.innerHTML='';
+  dl.forEach((d)=>{
+    const isCur=ca>=d.startAge&&ca<=d.endAge;
+    const div=document.createElement('div');div.className='dl-item'+(isCur?' now':'');
+    div.innerHTML=`<div class="dl-age">${d.startAge}–${d.endAge}歲</div><div class="dl-tg ${d.te}">${d.tg}</div><div class="dl-dz ${d.de}">${d.dz}</div><div class="dl-yr">${d.startYear}年起</div>${isCur?'<div class="dl-now-tag">現在</div>':''}`;
+    div.addEventListener('click',()=>{
+      document.querySelectorAll('.dl-item').forEach(x=>x.classList.remove('picked'));
+      div.classList.add('picked');
+      const det=document.getElementById('dlDetail');
+      det.innerHTML=`<strong style="color:var(--gold);font-family:'Noto Serif TC',serif">${d.tg}${d.dz}大運（${d.startAge}–${d.endAge}歲，${d.startYear}–${d.startYear+9}年）</strong><br><br>${DL_DESC[d.te]}五行${ECN[d.te]}氣走旺，整體運勢趨向${['wd','fi','me'].includes(d.te)?'積極進取':'穩健發展'}。${isCur?'<br><span style="color:var(--gold-light)">✦ 此為您目前所在大運</span>':''}`;
+      det.classList.add('show');
+    });
+    track.appendChild(div);
+    if(isCur)setTimeout(()=>div.click(),200);
+  });
+
+  const years=getAnnualYears(year);
+  const ag=document.getElementById('alGrid');ag.innerHTML='';
+  years.forEach(ay=>{
+    const isNow=ay.year===cy;
+    const div=document.createElement('div');div.className='al-card'+(isNow?' now':'');
+    div.innerHTML=`<div class="al-year">${ay.year}（${ay.age}歲）</div><div class="al-tg ${ay.te}">${ay.tg}</div><div class="al-dz ${ay.de}">${ay.dz}</div><div class="al-ani">${ay.animal}年</div>`;
+    div.addEventListener('click',()=>{
+      document.querySelectorAll('.al-card').forEach(x=>x.classList.remove('now'));
+      div.classList.add('now');
+      const det=document.getElementById('alDetail');
+      det.innerHTML=`<strong style="color:var(--gold);font-family:'Noto Serif TC',serif">${ay.year}年 ${ay.tg}${ay.dz}年（${ay.animal}年，${ay.age}歲）</strong><br><br>${AL_DESC[ay.te]}天干${ay.tg}屬${ECN[ay.te]}，地支${ay.dz}屬${ECN[ay.de]}。${isNow?'<span style="color:var(--gold-light)"> ✦ 今年運勢</span>':''}`;
+      det.classList.add('show');
+    });
+    ag.appendChild(div);
+    if(isNow)setTimeout(()=>div.click(),300);
+  });
+}
+
+// ─── Name Analysis ───
+const STROKE_DB={'一':1,'二':2,'三':3,'四':4,'五':5,'六':6,'七':7,'八':8,'九':9,'十':10,'王':4,'大':3,'小':3,'山':3,'水':4,'木':4,'火':4,'土':3,'金':8,'心':4,'人':2,'文':4,'天':4,'地':6,'日':4,'月':4,'星':9,'美':9,'麗':19,'英':8,'雄':12,'豪':14,'傑':12,'俊':9,'偉':11,'威':9,'明':8,'光':6,'輝':15,'華':10,'榮':14,'昌':8,'盛':11,'富':12,'貴':12,'安':6,'平':5,'和':8,'順':12,'吉':6,'祥':10,'福':13,'壽':7,'康':11,'健':11,'強':11,'勇':9,'智':12,'慧':15,'仁':4,'義':13,'禮':18,'信':9,'忠':8,'孝':7,'廉':13,'潔':15,'林':8,'森':12,'江':6,'河':8,'海':10,'湖':12,'川':3,'峰':10,'志':7,'宏':7,'遠':13,'博':12,'才':3,'達':12,'李':7,'張':11,'劉':15,'陳':10,'楊':13,'黃':12,'趙':14,'吳':7,'周':8,'徐':10,'孫':10,'馬':10,'朱':6,'胡':9,'郭':10,'何':7,'高':10,'鄭':15,'謝':17,'蕭':17,'蔡':17,'許':11,'韓':17,'馮':12,'曾':12,'彭':12,'盧':16,'玉':5,'珍':9,'雅':17,'芳':7,'靜':16,'文':4,'思':9,'欣':8,'佳':8,'薇':17,'婷':12,'翔':12,'宇':6,'承':8,'宸':10,'澤':16,'昊':8,'晨':11,'睿':13,'哲':10,'奕':9,'鈞':12,'霖':16,'恩':10,'萱':12,'瑄':13,'芸':10,'彤':7};
+function getStrokes(ch){if(STROKE_DB[ch])return STROKE_DB[ch];const code=ch.charCodeAt(0);if(code>=0x4E00&&code<=0x9FFF)return((code-0x4E00)%17)+3;return 4;}
+function strokeToWX(n){return['wd','wd','fi','fi','ea','ea','me','me','wa','wa'][((n-1)%10)];}
+const NUM_MEANING={
+  天格:{1:'大吉，領袖格',2:'吉中帶凶',3:'大吉，智慧出眾',4:'凶，多困難',5:'大吉，圓滿成功',6:'吉，貴人相助',7:'吉，剛毅果斷',8:'吉，努力可成',9:'凶，易生波折',10:'凶，運勢不穩'},
+  地格:{1:'吉，基礎穩固',2:'凶，體質較弱',3:'大吉，才藝出眾',4:'凶，宜謹慎',5:'吉，中年運旺',6:'吉，得長輩助',7:'吉，意志堅強',8:'吉，財運亨通',9:'凶，感情多波',10:'凶，注意健康'},
+  人格:{1:'吉，領導力強',2:'凶，易有孤獨感',3:'大吉，聰明活潑',4:'凶，環境多變',5:'大吉，中正平和',6:'吉，家庭美滿',7:'吉，意志力強',8:'吉，財運穩健',9:'凶，感情易受挫',10:'凶，需防健康'},
+  外格:{1:'吉，社交廣闊',2:'凶，人際需努力',3:'大吉，受人愛戴',4:'凶，易有是非',5:'吉，環境和諧',6:'大吉，貴人緣旺',7:'吉，正直誠信',8:'吉，財緣佳',9:'凶，感情不順',10:'凶，宜修身養性'},
+  總格:{1:'大吉，領袖命格',2:'凶，諸多不順',3:'大吉，幸運吉祥',4:'凶，命途多舛',5:'大吉，五行圓滿',6:'大吉，天賜福祿',7:'吉，拼搏有成',8:'吉，財富積累',9:'凶，需防損耗',10:'凶，起落較大'}
+};
+function numMeaning(type,n){const k=((n-1)%10)+1;return(NUM_MEANING[type]||{})[k]||'運勢平穩，宜修身養性';}
+
+function analyzeName(){
+  const raw=document.getElementById('nameInput').value.trim();
+  const chars=[...raw].filter(c=>/[\u4e00-\u9fff]/.test(c)).slice(0,4);
+  if(!chars.length){alert('請輸入1至4個中文字');return;}
+  const strokes=chars.map(getStrokes);
+  const total=strokes.reduce((a,b)=>a+b,0);
+  let tian,di,ren,wai,zong=total;
+  if(chars.length===1){tian=strokes[0]+1;di=strokes[0]+1;ren=strokes[0]+1;wai=2;}
+  else if(chars.length===2){tian=strokes[0]+1;di=strokes[1]+1;ren=strokes[0]+strokes[1];wai=2;}
+  else if(chars.length===3){tian=strokes[0]+1;di=strokes[1]+strokes[2];ren=strokes[0]+strokes[1];wai=strokes[2]+1;}
+  else{tian=strokes[0]+strokes[1];di=strokes[2]+strokes[3];ren=strokes[1]+strokes[2];wai=strokes[0]+strokes[3]+1;}
+
+  const cr=document.getElementById('charRow');cr.innerHTML='';
+  chars.forEach((c,i)=>{
+    const wx=strokeToWX(strokes[i]);
+    const div=document.createElement('div');div.className='char-card';
+    div.innerHTML=`<div class="char-zh">${c}</div><div class="char-strokes">${strokes[i]} 畫</div><div class="char-wx ${wx}">${ECN[wx]}</div>`;
+    cr.appendChild(div);
+  });
+
+  const ng=document.getElementById('numGrid');ng.innerHTML='';
+  [[tian,'天格','先天運勢'],[di,'地格','後天運勢'],[ren,'人格','主運核心'],[wai,'外格','社交人緣'],[zong,'總格','整體命數']].forEach(([v,lbl,sub])=>{
+    const r=((v-1)%10)+1,good=['1','3','5','6','7','8'].includes(String(r));
+    const div=document.createElement('div');div.className='num-box';
+    div.style.borderColor=good?'rgba(201,168,76,.45)':'rgba(200,80,60,.3)';
+    div.innerHTML=`<div class="num-lbl">${lbl}</div><div class="num-val" style="color:${good?'#c8a456':'#c06040'}">${v}</div><div class="num-name">${sub}</div>`;
+    ng.appendChild(div);
+  });
+
+  const wx_overall=strokeToWX(ren);
+  document.getElementById('nameDetail').innerHTML=`
+    <div class="fate-blk"><h4>姓名五行分析</h4><p>姓名總筆畫<span class="hi">${total}畫</span>，人格數為<span class="hi">${ren}</span>，五行屬<span class="hi ${wx_overall}">${ECN[wx_overall]}</span>。${chars.length>1?`姓「${chars[0]}」${strokes[0]}畫，名「${chars.slice(1).join('')}」${strokes.slice(1).reduce((a,b)=>a+b,0)}畫。`:''}</p></div>
+    <div class="fate-blk"><h4>五格解析</h4>
+      <p>・<span class="hi">天格 ${tian}</span>：${numMeaning('天格',tian)}</p>
+      <p>・<span class="hi">地格 ${di}</span>：${numMeaning('地格',di)}</p>
+      <p>・<span class="hi">人格 ${ren}</span>：${numMeaning('人格',ren)}</p>
+      <p>・<span class="hi">外格 ${wai}</span>：${numMeaning('外格',wai)}</p>
+      <p>・<span class="hi">總格 ${zong}</span>：${numMeaning('總格',zong)}</p>
+    </div>
+    <div class="fate-blk"><h4>整體建議</h4><p>此姓名五行以<span class="hi ${wx_overall}">${ECN[wx_overall]}</span>為主，個性${['wd','fi'].includes(wx_overall)?'積極外向，富創意與熱情':['ea','me'].includes(wx_overall)?'穩重踏實，做事有條有理':'聰慧靈活，善於應變'}。${ren%2===1?'數理逢奇，陽氣較旺，個性主動積極。':'數理逢偶，陰氣較盛，性格細膩溫柔。'}建議配合個人命格五行綜合評估。</p></div>
+    <div class="ornament">❧ 以上僅供娛樂參考 ❧</div>`;
+
+  document.getElementById('nameResult').style.display='block';
+  document.getElementById('nameResult').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+</script>
+</body>
+</html>
